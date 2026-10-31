@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react";
+import { Download } from "lucide-react";
 import {
   useGenerarReporteGenerico,
   formatDate,
@@ -36,6 +36,12 @@ const VisualizarDetallesGenericos = (registro: any) => {
   const tieneEvento = registro.evento;
   const tieneEstadisticas =
     registro.numeroOcurrencias || registro.unidades_distribuidas;
+  const tieneBeneficiarios =
+    registro.cantidad_familias_asistidas != null ||
+    registro.cantidad_mujeres != null ||
+    registro.cantidad_hombres != null ||
+    registro.cantidad_indigena != null ||
+    registro.cantidad_no_indigena != null;
 
   const handleGeneratePDF = () => {
     useGenerarReporteGenerico(registro, "Detalles del Registro");
@@ -116,6 +122,48 @@ const VisualizarDetallesGenericos = (registro: any) => {
             <p>
               <span className="font-medium">Número de Ocurrencias:</span>{" "}
               {formatNumber(registro.numeroOcurrencias)}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderSeccionBeneficiarios = () => {
+    if (!tieneBeneficiarios) return null;
+
+    return (
+      <div>
+        <h4 className="font-semibold text-primary">Beneficiarios</h4>
+        <div className="mt-2 space-y-2">
+          {registro.cantidad_familias_asistidas != null && (
+            <p>
+              <span className="font-medium">Familias:</span>{" "}
+              {formatNumber(registro.cantidad_familias_asistidas)}
+            </p>
+          )}
+          {registro.cantidad_mujeres != null && (
+            <p>
+              <span className="font-medium">Mujeres:</span>{" "}
+              {formatNumber(registro.cantidad_mujeres)}
+            </p>
+          )}
+          {registro.cantidad_hombres != null && (
+            <p>
+              <span className="font-medium">Hombres:</span>{" "}
+              {formatNumber(registro.cantidad_hombres)}
+            </p>
+          )}
+          {registro.cantidad_indigena != null && (
+            <p>
+              <span className="font-medium">Indígena:</span>{" "}
+              {formatNumber(registro.cantidad_indigena)}
+            </p>
+          )}
+          {registro.cantidad_no_indigena != null && (
+            <p>
+              <span className="font-medium">No indígena:</span>{" "}
+              {formatNumber(registro.cantidad_no_indigena)}
             </p>
           )}
         </div>
@@ -261,6 +309,7 @@ const VisualizarDetallesGenericos = (registro: any) => {
         {renderSeccionTemporal()}
         {renderSeccionUbicacion()}
         {renderSeccionEvento()}
+        {renderSeccionBeneficiarios()}
         {renderSeccionEstadisticas()}
       </div>
 
@@ -281,8 +330,8 @@ const VisualizarDetallesGenericos = (registro: any) => {
           onClick={handleGeneratePDF}
           className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
-          <FileText className="w-4 h-4" />
-          Imprimir PDF
+          <Download className="w-4 h-4" />
+          Descargar PDF
         </button>
       </div>
     </div>

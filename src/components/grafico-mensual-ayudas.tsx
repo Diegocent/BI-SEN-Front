@@ -1,5 +1,6 @@
 import React from "react";
 import ReactECharts from "echarts-for-react";
+import { CHART_H } from "@/lib/chartSize";
 import { useGetMensualQuery } from "@/api";
 
 const monthLabels = [
@@ -37,8 +38,8 @@ export default function GraficoMensual({
   setPromedio,
   setVariabilidad,
 }: GraficoMensualProps) {
-  const { data, isLoading, error } = useGetMensualQuery({
-    per_page: 100,
+  const { data, isLoading, isError } = useGetMensualQuery({
+    per_page: 200,
     ...(fecha_inicio && fecha_fin
       ? { fecha_desde: fecha_inicio, fecha_hasta: fecha_fin }
       : {}),
@@ -50,8 +51,9 @@ export default function GraficoMensual({
       const results = data.results;
 
       // 1. Pico Máximo - Mes con mayor unidades distribuidas
-      const picoMaximo = results.reduce((max: any, item: any) => {
-        return item.unidades_distribuidas > max.unidades_distribuidas
+        const picoMaximo = results.reduce((max: any, item: any) => {
+        return (item.cantidad_familias_asistidas || 0) >
+          (max.cantidad_familias_asistidas || 0)
           ? item
           : max;
       }, results[0]);
@@ -59,7 +61,7 @@ export default function GraficoMensual({
       setPicoMaximo?.({
         mes: picoMaximo.nombre_mes,
         anio: picoMaximo.anio,
-        valor: picoMaximo.unidades_distribuidas,
+        valor: picoMaximo.cantidad_familias_asistidas || 0,
       });
 
       // 3. Tendencia - Crecimiento anual (versión mejorada con regresión lineal)
@@ -68,7 +70,7 @@ export default function GraficoMensual({
         if (!datosPorAnio[item.anio]) {
           datosPorAnio[item.anio] = 0;
         }
-        datosPorAnio[item.anio] += item.unidades_distribuidas;
+        datosPorAnio[item.anio] += item.cantidad_familias_asistidas || 0;
       });
 
       const anos = Object.keys(datosPorAnio).map(Number).sort();
@@ -117,15 +119,18 @@ export default function GraficoMensual({
       // 4. Promedio - Eventos por mes (usando unidades_distribuidas como proxy de "eventos")
       const promedio =
         results.reduce(
-          (sum: number, item: any) => sum + item.unidades_distribuidas,
+          (sum: number, item: any) =>
+            sum + (item.cantidad_familias_asistidas || 0),
           0
         ) / results.length;
       setPromedio?.(Math.round(promedio * 100) / 100);
 
-      // 5. Variabilidad - Desviación estándar de unidades distribuidas
       const media = promedio;
       const sumaCuadrados = results.reduce((sum: number, item: any) => {
-        return sum + Math.pow(item.unidades_distribuidas - media, 2);
+        return (
+          sum +
+          Math.pow((item.cantidad_familias_asistidas || 0) - media, 2)
+        );
       }, 0);
       const desviacionEstandar = Math.sqrt(sumaCuadrados / results.length);
       setVariabilidad?.(Math.round(desviacionEstandar * 100) / 100);
@@ -133,7 +138,7 @@ export default function GraficoMensual({
   }, [data]); // <-- Solo depende de data
 
   if (isLoading) return <div>Cargando gráfico...</div>;
-  if (error) return <div>Error al cargar datos</div>;
+  if (isError) return <div>Error al cargar datos</div>;
 
   const results = data?.results || [];
 
@@ -152,7 +157,7 @@ export default function GraficoMensual({
       grouped[year] = Array(12).fill(0);
     }
 
-    grouped[year][monthIdx] = item.unidades_distribuidas || 0;
+    grouped[year][monthIdx] = item.cantidad_familias_asistidas || 0;
   });
 
   const availableYears = Object.keys(grouped);
@@ -203,7 +208,7 @@ export default function GraficoMensual({
     },
     yAxis: {
       type: "value",
-      name: "Unidades distribuidas",
+      name: "Familias asistidas",
       nameLocation: "middle",
       nameGap: 65,
       axisLabel: { fontSize: 12 },
@@ -226,7 +231,7 @@ export default function GraficoMensual({
     <div style={{ background: "#fff", borderRadius: 8, padding: 8 }}>
       <ReactECharts
         option={option}
-        style={{ height: 320 }}
+        style={{ height: CHART_H }}
         opts={{ devicePixelRatio: 2 }}
       />
     </div>

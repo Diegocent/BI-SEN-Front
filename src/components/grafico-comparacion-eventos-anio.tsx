@@ -1,5 +1,6 @@
 import ReactECharts from "echarts-for-react";
 import { useOcurrenciasEventoAnualQuery } from "@/api";
+import { CHART_H } from "@/lib/chartSize";
 
 export default function GraficoComparacionEventosAnio({
   fecha_inicio = "",
@@ -9,7 +10,7 @@ export default function GraficoComparacionEventosAnio({
   fecha_fin?: string;
 }) {
   const { data, isLoading, isError } = useOcurrenciasEventoAnualQuery({
-    per_page: 100,
+    per_page: 500,
     ...(fecha_inicio && fecha_fin
       ? { fecha_desde: fecha_inicio, fecha_hasta: fecha_fin }
       : {}),
@@ -36,9 +37,7 @@ export default function GraficoComparacionEventosAnio({
       const found = results.find(
         (item: any) => item.anio === anio && item.evento === evento
       );
-      return found
-        ? found.numeroOcurrencias || found.numero_ocurrencias || 0
-        : 0;
+      return found ? found.cantidad_familias_asistidas || 0 : 0;
     }),
     label: { show: false },
   }));
@@ -64,7 +63,7 @@ export default function GraficoComparacionEventosAnio({
     },
     yAxis: {
       type: "value",
-      name: "Cantidad de eventos",
+      name: "Familias asistidas",
       nameLocation: "middle",
       nameGap: 45,
       axisLabel: { fontSize: 12 },
@@ -87,7 +86,7 @@ export default function GraficoComparacionEventosAnio({
     <div style={{ background: "#fff", borderRadius: 8, padding: 0 }}>
       <ReactECharts
         option={option}
-        style={{ height: 380 }}
+        style={{ height: CHART_H }}
         opts={{ renderer: "canvas", devicePixelRatio: 2 }}
       />
     </div>

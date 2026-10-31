@@ -1,6 +1,7 @@
 import React from "react";
 import ReactECharts from "echarts-for-react";
 import { useGetPorEventoQuery } from "../api/eventos/eventosApi";
+import { CHART_H } from "@/lib/chartSize";
 
 interface Props {
   fecha_inicio?: string;
@@ -41,16 +42,16 @@ export default function GraficoPieEventos({
       (acc: any, item: any) => {
         switch (item.evento) {
           case "INUNDACION":
-            acc.inundaciones += item.numeroOcurrencias || 0;
+            acc.inundaciones += item.cantidad_familias_asistidas || 0;
             break;
           case "SEQUIA":
-            acc.sequias += item.numeroOcurrencias || 0;
+            acc.sequias += item.cantidad_familias_asistidas || 0;
             break;
           case "INCENDIO":
-            acc.incendios += item.numeroOcurrencias || 0;
+            acc.incendios += item.cantidad_familias_asistidas || 0;
             break;
           case "TORMENTA SEVERA":
-            acc.tormentas += item.numeroOcurrencias || 0;
+            acc.tormentas += item.cantidad_familias_asistidas || 0;
             break;
           default:
             break;
@@ -70,7 +71,7 @@ export default function GraficoPieEventos({
 
   const pieData = results.map((item: any) => ({
     name: item.evento,
-    value: item.numeroOcurrencias || item.numero_ocurrencias || item.count || 0,
+    value: item.cantidad_familias_asistidas || 0,
   }));
 
   const option = {
@@ -99,7 +100,7 @@ export default function GraficoPieEventos({
     ],
     series: [
       {
-        name: "Eventos",
+        name: "Familias",
         type: "pie",
         radius: "60%",
         data: pieData,
@@ -130,10 +131,10 @@ export default function GraficoPieEventos({
   };
 
   return (
-    <div style={{ background: "#fff", borderRadius: 8, padding: 16 }}>
+    <div style={{ background: "#fff", borderRadius: 8, padding: 4 }}>
       <ReactECharts
         option={option}
-        style={{ height: 400 }}
+        style={{ height: CHART_H }}
         opts={{ renderer: "canvas", devicePixelRatio: 2 }}
       />
     </div>

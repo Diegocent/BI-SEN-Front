@@ -1,5 +1,6 @@
 import ReactECharts from "echarts-for-react";
 import { useTendenciaMensualAsistenciasQuery } from "../api/temporal/temporalApi";
+import { CHART_H } from "@/lib/chartSize";
 
 interface Props {
   fecha_inicio?: string;
@@ -48,7 +49,7 @@ export default function GraficoTendenciaMensual({
       axisPointer: { type: "shadow" },
       formatter: (params: any) => {
         const p = params[0];
-        return `${p.axisValue}<br/>Asistencias: <b>${p.data}</b>`;
+        return `${p.axisValue}<br/>Familias: <b>${p.data}</b>`;
       },
     },
     legend: {
@@ -71,7 +72,7 @@ export default function GraficoTendenciaMensual({
     },
     yAxis: {
       type: "value",
-      name: "Cantidad de asistencias",
+      name: "Familias asistidas",
       nameLocation: "middle",
       nameGap: 40,
       axisLabel: { fontSize: 12 },
@@ -105,7 +106,7 @@ export default function GraficoTendenciaMensual({
     <div style={{ background: "#fff", borderRadius: 8, padding: 2 }}>
       <ReactECharts
         option={option}
-        style={{ height: 400 }}
+        style={{ height: CHART_H }}
         opts={{ devicePixelRatio: 2 }}
       />
     </div>

@@ -1,5 +1,6 @@
 import ReactECharts from "echarts-for-react";
 import { useComposicionAyudasPorEventoQuery } from "@/api";
+import { CHART_H } from "@/lib/chartSize";
 
 export default function GraficoComposicionAyudasPorEvento({
   fecha_inicio = "",
@@ -83,7 +84,7 @@ export default function GraficoComposicionAyudasPorEvento({
     <div style={{ background: "#fff", borderRadius: 8, padding: 0 }}>
       <ReactECharts
         option={option}
-        style={{ height: 380 }}
+        style={{ height: CHART_H }}
         opts={{ renderer: "canvas", devicePixelRatio: 2 }}
       />
     </div>

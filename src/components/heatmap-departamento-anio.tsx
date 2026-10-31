@@ -1,5 +1,6 @@
 import ReactECharts from "echarts-for-react";
 import { useAsistenciasPorAnioDepartamentoQuery } from "../api";
+import { CHART_H_HEAT } from "@/lib/chartSize";
 
 export default function HeatmapDepartamentoAnio({
   fecha_inicio = "",
@@ -9,7 +10,7 @@ export default function HeatmapDepartamentoAnio({
   fecha_fin?: string;
 }) {
   const { data, isLoading, isError } = useAsistenciasPorAnioDepartamentoQuery({
-    per_page: 100,
+    per_page: 500,
     ...(fecha_inicio && fecha_fin
       ? { fecha_desde: fecha_inicio, fecha_hasta: fecha_fin }
       : {}),
@@ -21,24 +22,9 @@ export default function HeatmapDepartamentoAnio({
   // Usar data.results para paginación DRF, o data directo si no existe results
   const results = Array.isArray(data) ? data : data?.results || [];
 
-  // Agrupar por departamento y año, sumar total ayudas
-  const ayudaFields = [
-    "kit_sentencia",
-    "kit_evento",
-    "chapa_fibrocemento_cantidad",
-    "chapa_zinc_cantidad",
-    "colchones_cantidad",
-    "frazadas_cantidad",
-    "terciadas_cantidad",
-    "puntales_cantidad",
-    "carpas_plasticas_cantidad",
-  ];
-
-  // Eje Y: departamentos únicos ordenados
   const departamentos = Array.from(
     new Set(results.map((item: any) => item.departamento))
   ).sort();
-  // Eje X: años únicos ordenados
   const anios = Array.from(
     new Set(results.map((item: any) => item.anio))
   ).sort();
@@ -47,7 +33,7 @@ export default function HeatmapDepartamentoAnio({
   results.forEach((item: any) => {
     const deptoIdx = departamentos.indexOf(item.departamento);
     const anioIdx = anios.indexOf(item.anio);
-    const total = ayudaFields.reduce((acc, f) => acc + (item[f] || 0), 0);
+    const total = item.cantidad_familias_asistidas || 0;
     if (deptoIdx !== -1 && anioIdx !== -1) {
       dataMatrix.push([anioIdx, deptoIdx, total]);
     }
@@ -103,7 +89,7 @@ export default function HeatmapDepartamentoAnio({
     },
     series: [
       {
-        name: "Ayudas",
+        name: "Familias",
         type: "heatmap",
         data: dataMatrix,
         label: {
@@ -135,7 +121,7 @@ export default function HeatmapDepartamentoAnio({
     <div style={{ background: "#fff", borderRadius: 8, padding: 0 }}>
       <ReactECharts
         option={option}
-        style={{ height: 550 }} // Más alto para celdas más grandes
+        style={{ height: CHART_H_HEAT }}
         opts={{ devicePixelRatio: 2 }}
       />
     </div>

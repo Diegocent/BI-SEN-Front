@@ -1,5 +1,6 @@
 import ReactECharts from "echarts-for-react";
 import { useEventosPorLocalidadQuery } from "../api/geografica/geograficaApi";
+import { CHART_H } from "@/lib/chartSize";
 
 export default function GraficoTopLocalidades({
   fecha_inicio = "",
@@ -26,11 +27,17 @@ export default function GraficoTopLocalidades({
   // Filtrar SIN ESPECIFICAR, ordenar y tomar el top N
   const topLocalidades = [...results]
     .filter((d) => d.localidad && d.localidad !== "SIN ESPECIFICAR")
-    .sort((a, b) => (b.numero_eventos || 0) - (a.numero_eventos || 0))
+    .sort(
+      (a, b) =>
+        (b.cantidad_familias_asistidas || 0) -
+        (a.cantidad_familias_asistidas || 0)
+    )
     .slice(0, TOP_N);
 
   const localidades = topLocalidades.map((d: any) => d.localidad);
-  const eventos = topLocalidades.map((d: any) => d.numero_eventos || 0);
+  const eventos = topLocalidades.map(
+    (d: any) => d.cantidad_familias_asistidas || 0
+  );
 
   const option = {
     tooltip: {
@@ -38,12 +45,12 @@ export default function GraficoTopLocalidades({
       axisPointer: { type: "shadow" },
       formatter: (params: any) => {
         const p = params[0];
-        return `${p.axisValue}<br/>Eventos: <b>${p.data}</b>`;
+        return `${p.axisValue}<br/>Familias: <b>${p.data}</b>`;
       },
     },
     xAxis: {
       type: "value",
-      name: "Eventos",
+      name: "Familias asistidas",
       nameLocation: "middle",
       nameGap: 30,
       axisLabel: { fontSize: 12 },
@@ -87,7 +94,7 @@ export default function GraficoTopLocalidades({
 
   return (
     <div style={{ background: "#fff", borderRadius: 8, padding: 2 }}>
-      <ReactECharts option={option} style={{ height: 380 }} />
+      <ReactECharts option={option} style={{ height: CHART_H }} />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 // Archivo base para definir el api slice de RTK Query
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-const baseUrl = import.meta.env.VITE_URL || "http://localhost:5088/api/";
+export const API_BASE_URL =
+  import.meta.env.VITE_URL || "http://localhost:5088/api/";
+const baseUrl = API_BASE_URL;
 
 export const api = createApi({
   reducerPath: "api",

@@ -1,6 +1,6 @@
 import { Column } from "@/components/data-table";
+import { columnasBeneficiarios } from "@/components/columnas-beneficiarios";
 
-// Columnas para tabla por eventos (hasta chapas zinc)
 export const columnasTipoEventos: Column[] = [
   {
     key: "evento",
@@ -14,6 +14,7 @@ export const columnasTipoEventos: Column[] = [
     dataType: "number",
     filterType: "text",
   },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kit sentencia",
@@ -40,7 +41,6 @@ export const columnasTipoEventos: Column[] = [
   },
 ];
 
-// Columnas para tabla eventos por departamento (hasta chapas zinc)
 export const columnasEventosDepartamento: Column[] = [
   {
     key: "departamento",
@@ -49,6 +49,7 @@ export const columnasEventosDepartamento: Column[] = [
     filterType: "text",
   },
   { key: "evento", label: "Evento", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits sentencia",
@@ -75,7 +76,6 @@ export const columnasEventosDepartamento: Column[] = [
   },
 ];
 
-// Columnas para PDF por eventos (todos los campos)
 export const columnasTipoEventosPDF: Column[] = [
   {
     key: "evento",
@@ -89,6 +89,7 @@ export const columnasTipoEventosPDF: Column[] = [
     dataType: "number",
     filterType: "text",
   },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kit sentencia",
@@ -145,7 +146,6 @@ export const columnasTipoEventosPDF: Column[] = [
   },
 ];
 
-// Columnas para PDF eventos por departamento (todos los campos)
 export const columnasEventosDepartamentoPDF: Column[] = [
   {
     key: "departamento",
@@ -154,6 +154,7 @@ export const columnasEventosDepartamentoPDF: Column[] = [
     filterType: "text",
   },
   { key: "evento", label: "Evento", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits sentencia",

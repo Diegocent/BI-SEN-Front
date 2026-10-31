@@ -108,13 +108,13 @@ export function Sidebar({
 
   return (
     <motion.div
-      className="fixed top-0 left-0 z-50 flex flex-col h-screen border-r bg-sidebar border-sidebar-border"
+      className="fixed top-0 left-0 z-50 flex flex-col h-screen min-h-0 overflow-hidden border-r bg-sidebar border-sidebar-border"
       variants={sidebarVariants}
       animate={isCollapsed ? "collapsed" : "expanded"}
       transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       {/* Header */}
-      <div className="p-4 border-b border-sidebar-border">
+      <div className="p-3 border-b border-sidebar-border shrink-0">
         <div
           className={`flex items-center ${
             isCollapsed ? "justify-center" : "justify-between"
@@ -130,10 +130,10 @@ export function Sidebar({
                 transition={{ duration: 0.2 }}
                 className="flex-1"
               >
-                <h1 className="text-lg font-bold leading-tight text-sidebar-foreground">
+                <h1 className="text-base font-bold leading-tight text-sidebar-foreground">
                   BI - Asistencia Humanitaria
                 </h1>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   Datos de la SEN Paraguay
                 </p>
               </motion.div>
@@ -157,8 +157,8 @@ export function Sidebar({
       {/* (Facultad link moved to footer) */}
 
       {/* Navigation */}
-      <div className="flex-1 p-4">
-        <nav className="space-y-2">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3">
+        <nav className="space-y-1.5">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeSection === item.id;
@@ -172,7 +172,7 @@ export function Sidebar({
                 <Button
                   variant={isActive ? "default" : "ghost"}
                   className={cn(
-                    "w-full justify-start h-12 text-left",
+                    "w-full justify-start h-10 text-left",
                     isActive
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-sidebar-foreground hover:bg-sidebar-accent",
@@ -210,8 +210,8 @@ export function Sidebar({
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-sidebar-border">
-        <div className="space-y-2">
+      <div className="p-3 border-t border-sidebar-border shrink-0 overflow-y-auto max-h-[38vh]">
+        <div className="space-y-1">
           {contactItems.map((item) => {
             const Icon = item.icon;
 
@@ -224,7 +224,7 @@ export function Sidebar({
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start h-10 text-left text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                    "w-full justify-start h-9 text-left text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent",
                     isCollapsed && "justify-center px-0"
                   )}
                   asChild
@@ -251,13 +251,10 @@ export function Sidebar({
                                   animate="expanded"
                                   exit="collapsed"
                                   transition={{ duration: 0.2 }}
-                                  className="flex flex-col min-w-0" // min-w-0 para permitir el truncado
+                                  className="flex flex-col min-w-0"
                                 >
                                   <span className="text-xs font-medium truncate">
                                     {item.label}
-                                  </span>
-                                  <span className="text-xs truncate text-muted-foreground">
-                                    {item.value}
                                   </span>
                                 </motion.div>
                               </TooltipTrigger>
@@ -283,11 +280,11 @@ export function Sidebar({
           })}
         </div>
           {/* Facultad Politécnica - enlace inferior con logo */}
-          <div className="pt-3">
+          <div className="pt-2">
             <Button
               variant="ghost"
               className={cn(
-                "w-full justify-start h-10 text-left text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                "w-full justify-start h-9 text-left text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent",
                 isCollapsed && "justify-center px-0"
               )}
               asChild
@@ -307,10 +304,10 @@ export function Sidebar({
                         <img
                           src="/fpuna.png"
                           alt="FPUNA"
-                          className={cn("h-8", isCollapsed ? "w-8" : "w-auto mr-3")}
+                          className={cn("h-6", isCollapsed ? "w-6" : "w-auto mr-2")}
                         />
                         {!isCollapsed && (
-                          <span className="text-sm font-medium">Facultad Politécnica - UNA</span>
+                          <span className="text-xs font-medium truncate">Facultad Politécnica</span>
                         )}
                       </motion.div>
                     </TooltipTrigger>

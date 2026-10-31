@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ReactECharts from "echarts-for-react";
 import { useTendenciaMensualAsistenciasQuery } from "@/api";
+import { CHART_H } from "@/lib/chartSize";
 
 const eventos = [
   "EXTREMA VULNERABILIDAD",
@@ -77,7 +78,7 @@ export default function GraficoTendenciaMensualEventos({
     },
     yAxis: {
       type: "value",
-      name: "Cantidad de eventos",
+      name: "Familias asistidas",
       nameLocation: "middle",
       nameGap: 45,
       axisLabel: { fontSize: 12 },
@@ -118,7 +119,7 @@ export default function GraficoTendenciaMensualEventos({
       </div>
       <ReactECharts
         option={option}
-        style={{ height: 400 }}
+        style={{ height: CHART_H }}
         opts={{ renderer: "canvas", devicePixelRatio: 2 }}
       />
     </div>

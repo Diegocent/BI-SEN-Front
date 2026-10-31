@@ -26,6 +26,19 @@ interface DepartamentoData {
   puntales_cantidad: number;
   carpas_plasticas_cantidad: number;
   evento_mas_frecuente: string;
+  cantidad_familias_asistidas?: number;
+  cantidad_mujeres?: number;
+  cantidad_hombres?: number;
+  cantidad_indigena?: number;
+  cantidad_no_indigena?: number;
+}
+
+function normalizarDepto(valor?: string) {
+  return (valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .trim();
 }
 
 interface MapaParaguayProps {
@@ -369,8 +382,8 @@ export function MapaParaguay({
     (mock) => {
       const real = resumenData?.find(
         (d: any) =>
-          (d.departamento || d.nombre || d.name)?.toUpperCase() ===
-          mock.departamento.toUpperCase()
+          normalizarDepto(d.departamento || d.nombre || d.name) ===
+          normalizarDepto(mock.departamento)
       );
 
       return real
@@ -387,6 +400,11 @@ export function MapaParaguay({
             puntales_cantidad: real.puntales_cantidad ?? 0,
             carpas_plasticas_cantidad: real.carpas_plasticas_cantidad ?? 0,
             evento_mas_frecuente: real.evento_mas_frecuente ?? "",
+            cantidad_familias_asistidas: real.cantidad_familias_asistidas ?? 0,
+            cantidad_mujeres: real.cantidad_mujeres ?? 0,
+            cantidad_hombres: real.cantidad_hombres ?? 0,
+            cantidad_indigena: real.cantidad_indigena ?? 0,
+            cantidad_no_indigena: real.cantidad_no_indigena ?? 0,
           }
         : mock;
     }
@@ -443,8 +461,8 @@ export function MapaParaguay({
           setSelectedDepartamento(dept);
           const real = resumenData?.find(
             (d: any) =>
-              (d.departamento || d.nombre || d.name)?.toUpperCase() ===
-              dept.departamento.toUpperCase()
+              normalizarDepto(d.departamento || d.nombre || d.name) ===
+              normalizarDepto(dept.departamento)
           );
           setSelectedDepartamentoData(real || null);
           setIsDialogOpen(true);
@@ -482,7 +500,7 @@ export function MapaParaguay({
           </p>
         </CardHeader>
         <CardContent>
-          <div className="h-[500px] w-full rounded-lg overflow-hidden border">
+          <div className="h-[clamp(240px,42vh,380px)] w-full rounded-lg overflow-hidden border">
             <div
               ref={mapRef}
               style={{ height: "100%", width: "100%", zIndex: 1 }}
@@ -507,11 +525,11 @@ export function MapaParaguay({
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-info/10 rounded-lg">
                   <p className="text-2xl font-bold text-info">
-                    {selectedDepartamentoData?.cantidad_registros ?? 0}
+                    {selectedDepartamentoData?.cantidad_familias_asistidas ??
+                      selectedDepartamentoData?.cantidad_registros ??
+                      0}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Total Registros
-                  </p>
+                  <p className="text-xs text-muted-foreground">Familias</p>
                 </div>
                 <div className="text-center p-3 bg-success/10 rounded-lg">
                   <p className="text-sm font-bold text-success">
@@ -523,6 +541,30 @@ export function MapaParaguay({
                 </div>
               </div>
               <div className="space-y-2">
+                <div className="flex justify-between items-center p-2 bg-secondary-light rounded">
+                  <span className="text-sm font-medium">Mujeres:</span>
+                  <span className="text-sm font-bold text-primary">
+                    {selectedDepartamentoData?.cantidad_mujeres ?? 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 bg-secondary-light rounded">
+                  <span className="text-sm font-medium">Hombres:</span>
+                  <span className="text-sm font-bold text-primary">
+                    {selectedDepartamentoData?.cantidad_hombres ?? 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 bg-secondary-light rounded">
+                  <span className="text-sm font-medium">Indígena:</span>
+                  <span className="text-sm font-bold text-primary">
+                    {selectedDepartamentoData?.cantidad_indigena ?? 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 bg-secondary-light rounded">
+                  <span className="text-sm font-medium">No indígena:</span>
+                  <span className="text-sm font-bold text-primary">
+                    {selectedDepartamentoData?.cantidad_no_indigena ?? 0}
+                  </span>
+                </div>
                 <div className="flex justify-between items-center p-2 bg-secondary-light rounded">
                   <span className="text-sm font-medium">Total Chapas:</span>
                   <span className="text-sm font-bold text-primary">

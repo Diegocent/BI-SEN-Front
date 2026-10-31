@@ -34,13 +34,13 @@ export function MainContent({
       <div className="h-full overflow-auto bg-background">
         <motion.div
           key={activeSection}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-          className="p-6"
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.2 }}
+          className="p-4 lg:p-5"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-[1600px] mx-auto">
             <SectionComponent />
           </div>
         </motion.div>

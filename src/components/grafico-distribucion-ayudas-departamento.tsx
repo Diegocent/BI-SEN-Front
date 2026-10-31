@@ -1,5 +1,6 @@
 import ReactECharts from "echarts-for-react";
 import { useGetPorDepartamentoQuery } from "../api";
+import { CHART_H } from "@/lib/chartSize";
 
 const tiposAyuda = [
   "kit_sentencia",
@@ -96,7 +97,7 @@ export default function GraficoDistribucionAyudasPorDepartamento({
 
   return (
     <div style={{ background: "#fff", borderRadius: 8, padding: 0 }}>
-      <ReactECharts option={option} style={{ height: 390, marginTop: 0 }} />
+      <ReactECharts option={option} style={{ height: CHART_H, marginTop: 0 }} />
     </div>
   );
 }

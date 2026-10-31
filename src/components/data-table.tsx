@@ -32,7 +32,7 @@ import {
   Close,
 } from "@mui/icons-material";
 import { formatCell } from "@/lib/formatCell";
-import { FileText, Filter } from "lucide-react";
+import { Download, Filter } from "lucide-react";
 
 export type Column = {
   key: string;
@@ -259,10 +259,10 @@ export function DataTable(props: DataTableProps) {
                 size="default"
                 onClick={handleImprimir}
                 className="ml-2 bg-primary hover:bg-primary-dark"
-                title="Imprimir PDF"
+                title="Descargar PDF"
               >
-                <FileText />
-                <span className="text-white font-semibold">Imprimir PDF</span>
+                <Download />
+                <span className="text-white font-semibold">Descargar PDF</span>
               </Button>
             )}
           </Box>

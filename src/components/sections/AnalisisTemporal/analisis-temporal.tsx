@@ -1,5 +1,4 @@
-import { motion } from "framer-motion";
-import {
+﻿import {
   Card,
   CardContent,
   CardDescription,
@@ -13,8 +12,7 @@ import GraficoAnualAyudas from "../../grafico-anual-ayudas";
 import GraficoDistribucionAnualProducto from "../../grafico-distribucion-anual-producto";
 import GraficoTendenciaMensual from "../../grafico-tendencia-mensual";
 import { useState, useEffect } from "react";
-import { generateTablePDF } from "@/lib/pdfUtils";
-import { ObtenerTotalData } from "@/hooks/obtenerTotalData";
+import { imprimirTablaPDF } from "@/lib/pdfUtils";
 import {
   columnasAnual,
   columnasMensual,
@@ -22,6 +20,7 @@ import {
   columnasMensualPDF,
 } from "./constants/constants";
 import VisualizarDetallesGenericos from "@/components/VisualizarDetallesGenericos";
+import { SectionShell } from "@/components/layout/section-shell";
 
 interface MetricasTemporales {
   picoMaximo: { mes: string; anio: number; valor: number } | null;
@@ -92,16 +91,12 @@ export function AnalisisTemporal() {
     setPdfParamAnual({ ...filtersAnualWithoutPage, ...dateParams });
   }, [filtersAnual, dateRange]);
 
-  const handleImprimirPDFAnual = async () => {
-    const registrosTotales = await ObtenerTotalData(
-      "",
-      "anual",
-      pdfParamAnual,
-      dataAnual?.count || 10
-    );
-    generateTablePDF({
+  const handleImprimirPDFAnual = () => {
+    imprimirTablaPDF({
+      controller: "anual",
+      params: pdfParamAnual,
+      perPage: dataAnual?.count || 10,
       columns: columnasAnualPDF,
-      data: registrosTotales?.results || [],
       title: "Resumen Anual",
     });
   };
@@ -112,16 +107,12 @@ export function AnalisisTemporal() {
     setPdfParamMensual({ ...filtersMensualWithoutPage, ...dateParams });
   }, [filtersMensual, dateRange]);
 
-  const handleImprimirPDFMensual = async () => {
-    const registrosTotales = await ObtenerTotalData(
-      "",
-      "mensual",
-      pdfParamMensual,
-      dataMensual?.count || 10
-    );
-    generateTablePDF({
+  const handleImprimirPDFMensual = () => {
+    imprimirTablaPDF({
+      controller: "mensual",
+      params: pdfParamMensual,
+      perPage: dataMensual?.count || 10,
       columns: columnasMensualPDF,
-      data: registrosTotales?.results || [],
       title: "Detalle Mensual",
     });
   };
@@ -176,108 +167,105 @@ export function AnalisisTemporal() {
   const getTendenciaIcono = (direccion: string) => {
     switch (direccion) {
       case "ascendente":
-        return "↗";
+        return "â†—";
       case "descendente":
-        return "↘";
+        return "â†˜";
       default:
-        return "→";
+        return "â†’";
     }
   };
 
+  const [vista, setVista] = useState("indicadores");
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
+    <SectionShell
+      title="Análisis Temporal"
+      description="Evolución temporal de los datos de asistencia humanitaria"
+      dateRange={dateRange}
+      onDateChange={setDateRange}
+      tabs={[
+        { id: "indicadores", label: "Indicadores" },
+        { id: "graficos", label: "Gráficos" },
+        { id: "tablas", label: "Tablas" },
+      ]}
+      activeTab={vista}
+      onTabChange={setVista}
     >
-      {/* Filtro global de fechas */}
-      <div className="flex gap-4 items-center mb-4">
-        <label className="font-semibold">Rango de fechas:</label>
-        <input
-          type="date"
-          value={dateRange.startDate}
-          onChange={(e) =>
-            setDateRange((r) => ({ ...r, startDate: e.target.value }))
-          }
-          className="border rounded px-2 py-1"
-        />
-        <span className="mx-2">a</span>
-        <input
-          type="date"
-          value={dateRange.endDate}
-          onChange={(e) =>
-            setDateRange((r) => ({ ...r, endDate: e.target.value }))
-          }
-          className="border rounded px-2 py-1"
-        />
-      </div>
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.1 }}
-        className="mb-6"
-      >
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Análisis Temporal
-        </h1>
-        <p className="text-muted-foreground">
-          Evolución temporal de los datos de asistencia humanitaria
-        </p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="grid gap-6"
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-primary">
-              Tendencias Temporales
-            </CardTitle>
-            <CardDescription>
-              Evolución de la asistencia humanitaria a lo largo del tiempo
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              style={{
-                paddingLeft: 5,
-                paddingRight: 5,
-                width: "100%",
-              }}
-            >
-              <GraficoTendenciaMensual
-                fecha_inicio={dateRange.startDate}
-                fecha_fin={dateRange.endDate}
-              />
-            </motion.div>
-          </CardContent>
-        </Card>
-
-        <div className="grid md:grid-cols-2 gap-6">
+      {vista === "indicadores" && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-warning text-sm">Pico máximo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold text-warning">
+                  {metricas.picoMaximo
+                    ? formatNumber(metricas.picoMaximo.valor)
+                    : "-"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {metricas.picoMaximo
+                    ? `${metricas.picoMaximo.mes} ${metricas.picoMaximo.anio}`
+                    : "Mes con más familias"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-success text-sm">Tendencia</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p
+                  className={`text-xl font-bold ${
+                    metricas.tendencia
+                      ? getTendenciaColor(metricas.tendencia.direccion)
+                      : "text-success"
+                  }`}
+                >
+                  {metricas.tendencia
+                    ? `${getTendenciaIcono(metricas.tendencia.direccion)} ${
+                        metricas.tendencia.crecimiento
+                      }%`
+                    : "-"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {metricas.tendencia
+                    ? `Crecimiento ${metricas.tendencia.direccion}`
+                    : "Crecimiento anual"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-info text-sm">Promedio</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold text-info">
+                  {metricas.promedio ? formatNumber(metricas.promedio) : "-"}
+                </p>
+                <p className="text-xs text-muted-foreground">Familias por mes</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-danger text-sm">Variabilidad</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold text-danger">
+                  {metricas.variabilidad
+                    ? formatNumber(metricas.variabilidad)
+                    : "-"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Desviación estándar
+                </p>
+              </CardContent>
+            </Card>
+          </div>
           <Card>
             <CardHeader>
-              <CardTitle className="text-primary">Análisis por Año</CardTitle>
-              <CardDescription>Distribución anual de productos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GraficoAnualAyudas
-                fecha_inicio={dateRange.startDate}
-                fecha_fin={dateRange.endDate}
-                height={320}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-info">Análisis por Mes</CardTitle>
+              <CardTitle className="text-info">Análisis por mes</CardTitle>
               <CardDescription>Patrones estacionales</CardDescription>
             </CardHeader>
             <CardContent>
@@ -300,104 +288,59 @@ export function AnalisisTemporal() {
             </CardContent>
           </Card>
         </div>
+      )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-success">
-              Distribución anual de asistencia principal
-            </CardTitle>
-            <CardDescription>
-              Selecciona el producto para ver su evolución anual
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <GraficoDistribucionAnualProducto
-              fecha_inicio={dateRange.startDate}
-              fecha_fin={dateRange.endDate}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Métricas */}
-        <div className="grid md:grid-cols-4 gap-4">
+      {vista === "graficos" && (
+        <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-warning">Pico Máximo</CardTitle>
+              <CardTitle className="text-primary">Tendencias temporales</CardTitle>
+              <CardDescription>
+                Evolución de la asistencia humanitaria a lo largo del tiempo
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-xl font-bold text-warning">
-                {metricas.picoMaximo
-                  ? formatNumber(metricas.picoMaximo.valor)
-                  : "-"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {metricas.picoMaximo
-                  ? `${metricas.picoMaximo.mes} ${metricas.picoMaximo.anio}`
-                  : "Mes con más eventos"}
-              </p>
+              <GraficoTendenciaMensual
+                fecha_inicio={dateRange.startDate}
+                fecha_fin={dateRange.endDate}
+              />
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-success">Tendencia</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p
-                className={`text-xl font-bold ${
-                  metricas.tendencia
-                    ? getTendenciaColor(metricas.tendencia.direccion)
-                    : "text-success"
-                }`}
-              >
-                {metricas.tendencia
-                  ? `${getTendenciaIcono(metricas.tendencia.direccion)} ${
-                      metricas.tendencia.crecimiento
-                    }%`
-                  : "-"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {metricas.tendencia
-                  ? `Crecimiento ${metricas.tendencia.direccion}`
-                  : "Crecimiento anual"}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-info">Promedio</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl font-bold text-info">
-                {metricas.promedio ? formatNumber(metricas.promedio) : "-"}
-              </p>
-              <p className="text-sm text-muted-foreground">Eventos por mes</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-danger">Variabilidad</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl font-bold text-danger">
-                {metricas.variabilidad
-                  ? formatNumber(metricas.variabilidad)
-                  : "-"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Desviación estándar
-              </p>
-            </CardContent>
-          </Card>
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-primary">Análisis por año</CardTitle>
+                <CardDescription>Distribución anual de productos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GraficoAnualAyudas
+                  fecha_inicio={dateRange.startDate}
+                  fecha_fin={dateRange.endDate}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-success">
+                  Distribución anual de asistencia principal
+                </CardTitle>
+                <CardDescription>
+                  Selecciona el producto para ver su evolución anual
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GraficoDistribucionAnualProducto
+                  fecha_inicio={dateRange.startDate}
+                  fecha_fin={dateRange.endDate}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </div>
+      )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+      {vista === "tablas" && (
+        <div className="space-y-4">
           <div className="overflow-x-auto w-full">
             <DataTable
               data={
@@ -418,15 +361,9 @@ export function AnalisisTemporal() {
               filters={filtersAnual}
               setFilters={setFiltersAnual}
               handleImprimir={handleImprimirPDFAnual}
+              maxHeight="calc(100dvh - 16rem)"
             />
           </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
           <div className="overflow-x-auto w-full">
             <DataTable
               data={
@@ -447,10 +384,11 @@ export function AnalisisTemporal() {
               filters={filtersMensual}
               setFilters={setFiltersMensual}
               handleImprimir={handleImprimirPDFMensual}
+              maxHeight="calc(100dvh - 16rem)"
             />
           </div>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+        </div>
+      )}
+    </SectionShell>
   );
 }

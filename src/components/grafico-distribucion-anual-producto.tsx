@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ReactECharts from "echarts-for-react";
 import { useDistribucionAnualProductoQuery } from "@/api";
+import { CHART_H } from "@/lib/chartSize";
 
 const productos = [
   { key: "kit_sentencia", label: "Kit sentencia" },
@@ -99,7 +100,7 @@ export default function GraficoDistribucionAnualProducto({
       <h3 style={{ marginBottom: 8 }}>
         Distribución anual de {productos.find((p) => p.key === producto)?.label}
       </h3>
-      <ReactECharts option={option} style={{ height: 320 }} />
+      <ReactECharts option={option} style={{ height: CHART_H }} />
     </div>
   );
 }

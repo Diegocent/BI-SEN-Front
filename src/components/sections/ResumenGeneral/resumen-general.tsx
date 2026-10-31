@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -6,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../ui/card";
-import { Database, Users, MapPin } from "lucide-react";
+import { Database, Users, MapPin, UserRound, User, Landmark } from "lucide-react";
 import { MapaParaguay } from "../../mapa-paraguay";
 import { DataTable } from "../../data-table";
 import {
@@ -17,16 +16,23 @@ import { useEffect, useState } from "react";
 import GraficoDistribucionAyudasPorDepartamento from "../../grafico-distribucion-ayudas-departamento";
 import GraficoPieEventos from "../../grafico-pie-eventos";
 import GraficoTendenciaMensual from "../../grafico-tendencia-mensual";
-import { generateTablePDF } from "@/lib/pdfUtils";
-import { ObtenerTotalData } from "@/hooks/obtenerTotalData";
+import { imprimirTablaPDF } from "@/lib/pdfUtils";
 import { columnasRegistros, columnasReportes } from "./constants/constants";
 import VisualizarDetallesGenericos from "@/components/VisualizarDetallesGenericos";
 import GraficoAnualAyudas from "@/components/grafico-anual-ayudas";
+import GraficoPieCaracterizacion from "@/components/grafico-pie-caracterizacion";
+import { SectionShell } from "@/components/layout/section-shell";
 
 type ResumenGeneralData = {
   cantidad_departamentos: number;
   cantidad_kit_evento: number;
   cantidad_registros_total: number;
+  cantidad_familias_asistidas: number;
+  cantidad_mujeres: number;
+  cantidad_hombres: number;
+  cantidad_otro: number;
+  cantidad_indigena: number;
+  cantidad_no_indigena: number;
 };
 
 export function ResumenGeneral() {
@@ -40,6 +46,8 @@ export function ResumenGeneral() {
     startDate: "",
     endDate: "",
   });
+
+  const [vista, setVista] = useState("indicadores");
 
   // Construir parámetros para la consulta, incluyendo el rango de fechas
   const { page, ...filtersWithoutPage } = filters;
@@ -91,20 +99,20 @@ export function ResumenGeneral() {
     cantidad_departamentos: 0,
     cantidad_kit_evento: 0,
     cantidad_registros_total: 0,
+    cantidad_familias_asistidas: 0,
+    cantidad_mujeres: 0,
+    cantidad_hombres: 0,
+    cantidad_otro: 0,
+    cantidad_indigena: 0,
+    cantidad_no_indigena: 0,
   });
 
-  const handleImprimirPDF = async () => {
-    // primero obtenemos los registros totales con los filtros actuales
-    const registrosTotales = await ObtenerTotalData(
-      "",
-      "detallada",
-      pdfParam,
-      registrosRecientes?.count || 10 // Suponiendo que no habrá más de 1000 registros para exportar
-    );
-    // Llamar a la función para generar el PDF, pasando los parámetros actuales
-    generateTablePDF({
+  const handleImprimirPDF = () => {
+    imprimirTablaPDF({
+      controller: "detallada",
+      params: pdfParam,
+      perPage: registrosRecientes?.count || 10,
       columns: columnasReportes,
-      data: registrosTotales?.results || [],
       title: "Resumen General",
     });
   };
@@ -112,194 +120,210 @@ export function ResumenGeneral() {
   useEffect(() => {
     if (data) {
       setCardsResumen({
-        cantidad_departamentos: data.cantidad_departamentos,
-        cantidad_kit_evento: data.cantidad_kit_evento,
-        cantidad_registros_total: data.cantidad_registros_total,
+        cantidad_departamentos: data.cantidad_departamentos || 0,
+        cantidad_kit_evento: data.cantidad_kit_evento || 0,
+        cantidad_registros_total: data.cantidad_registros_total || 0,
+        cantidad_familias_asistidas: data.cantidad_familias_asistidas || 0,
+        cantidad_mujeres: data.cantidad_mujeres || 0,
+        cantidad_hombres: data.cantidad_hombres || 0,
+        cantidad_otro: data.cantidad_otro || 0,
+        cantidad_indigena: data.cantidad_indigena || 0,
+        cantidad_no_indigena: data.cantidad_no_indigena || 0,
       });
     }
   }, [data]);
 
+  const kpis = [
+    {
+      icon: Database,
+      title: "Datos registrados",
+      value: cardsResumen.cantidad_registros_total || 0,
+      hint: "Titulares compactados",
+    },
+    {
+      icon: Users,
+      title: "Familias asistidas",
+      value: cardsResumen.cantidad_familias_asistidas || 0,
+      hint: "Familias beneficiadas",
+    },
+    {
+      icon: MapPin,
+      title: "Departamentos",
+      value: cardsResumen.cantidad_departamentos || 0,
+      hint: "Departamentos únicos",
+    },
+    {
+      icon: UserRound,
+      title: "Mujeres",
+      value: cardsResumen.cantidad_mujeres || 0,
+      hint: "Titulares de sexo femenino",
+    },
+    {
+      icon: User,
+      title: "Hombres",
+      value: cardsResumen.cantidad_hombres || 0,
+      hint: "Titulares de sexo masculino",
+    },
+    {
+      icon: Landmark,
+      title: "Población indígena",
+      value: cardsResumen.cantidad_indigena || 0,
+      hint: `${cardsResumen.cantidad_no_indigena || 0} no indígena`,
+    },
+  ];
+
   return (
-    <div className="space-y-8">
-      {/* Filtro global de fechas */}
-      <div className="flex gap-4 items-center mb-4">
-        <label className="font-semibold">Rango de fechas:</label>
-        <input
-          type="date"
-          value={dateRange.startDate}
-          onChange={(e) =>
-            setDateRange((r) => ({ ...r, startDate: e.target.value }))
-          }
-          className="border rounded px-2 py-1"
-        />
-        <span className="mx-2">a</span>
-        <input
-          type="date"
-          value={dateRange.endDate}
-          onChange={(e) =>
-            setDateRange((r) => ({ ...r, endDate: e.target.value }))
-          }
-          className="border rounded px-2 py-1"
-        />
-      </div>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="space-y-6"
-      >
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-6"
-        >
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Resumen General
-          </h1>
-          <p className="text-muted-foreground">
-            Vista general de los datos de asistencia humanitaria
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid gap-6 max-w-screen overflow-x-auto"
-          style={{ maxWidth: "100vw" }}
-        >
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Total de datos registrados */}
-            <motion.div
-              whileHover={{ y: -3, boxShadow: "0 2px 8px 0 rgba(0,0,0,0.08)" }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Card className="bg-white border-2 border-primary-dark text-primary-dark">
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <Database className="h-8 w-8 text-primary-dark" />
-                  <CardTitle className="text-primary-dark">
-                    Total de datos registrados
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-primary-dark">
-                    {cardsResumen?.cantidad_registros_total || 0}
-                  </p>
-                  <p className="text-sm text-primary-dark/80">
-                    En el rango seleccionado
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Total de familias asistidas */}
-            <motion.div
-              whileHover={{ y: -3, boxShadow: "0 2px 8px 0 rgba(0,0,0,0.08)" }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Card className="bg-white border-2 border-primary-dark text-primary-dark">
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <Users className="h-8 w-8 text-primary-dark" />
-                  <CardTitle className="text-primary-dark">
-                    Total de familias asistidas
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-primary-dark">
-                    {cardsResumen?.cantidad_kit_evento || 0}
-                  </p>
-                  <p className="text-sm text-primary-dark/80">
-                    Familias beneficiadas
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Total de departamentos asistidos */}
-            <motion.div
-              whileHover={{ y: -3, boxShadow: "0 2px 8px 0 rgba(0,0,0,0.08)" }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Card className="bg-white border-2 border-primary-dark text-primary-dark">
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <MapPin className="h-8 w-8 text-primary-dark" />
-                  <CardTitle className="text-primary-dark">
-                    Total de departamentos asistidos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-primary-dark">
-                    {cardsResumen.cantidad_departamentos || 0}
-                  </p>
-                  <p className="text-sm text-primary-dark/80">
-                    Departamentos únicos
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
+    <SectionShell
+      title="Resumen General"
+      description="Vista general de los datos de asistencia humanitaria"
+      dateRange={dateRange}
+      onDateChange={setDateRange}
+      tabs={[
+        { id: "indicadores", label: "Indicadores" },
+        { id: "graficos", label: "Gráficos" },
+        { id: "registros", label: "Registros" },
+      ]}
+      activeTab={vista}
+      onTabChange={setVista}
+    >
+      {vista === "indicadores" && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+            {kpis.map((kpi) => {
+              const Icon = kpi.icon;
+              return (
+                <Card
+                  key={kpi.title}
+                  className="bg-white border border-primary-dark/50 text-primary-dark py-3 gap-2"
+                >
+                  <CardHeader className="flex flex-row items-center gap-2 px-3 py-0">
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <CardTitle className="text-xs font-semibold leading-tight">
+                      {kpi.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-3">
+                    <p className="text-xl font-bold leading-none">{kpi.value}</p>
+                    <p className="text-[11px] text-primary-dark/70 mt-1">
+                      {kpi.hint}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-primary">Sexo del titular</CardTitle>
+                <CardDescription>
+                  Familias según sexo informado en los consolidados
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GraficoPieCaracterizacion
+                  titulo="Sexo"
+                  datos={[
+                    { name: "Mujeres", value: cardsResumen.cantidad_mujeres },
+                    { name: "Hombres", value: cardsResumen.cantidad_hombres },
+                    { name: "Otro", value: cardsResumen.cantidad_otro },
+                    {
+                      name: "No informado",
+                      value: Math.max(
+                        0,
+                        cardsResumen.cantidad_familias_asistidas -
+                          cardsResumen.cantidad_mujeres -
+                          cardsResumen.cantidad_hombres -
+                          cardsResumen.cantidad_otro
+                      ),
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-primary">Tipo de población</CardTitle>
+                <CardDescription>
+                  Indígena / no indígena. La zona rural o urbana no viene en
+                  estas planillas.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GraficoPieCaracterizacion
+                  titulo="Población"
+                  datos={[
+                    {
+                      name: "Indígena",
+                      value: cardsResumen.cantidad_indigena,
+                    },
+                    {
+                      name: "No indígena",
+                      value: cardsResumen.cantidad_no_indigena,
+                    },
+                    {
+                      name: "No informado",
+                      value: Math.max(
+                        0,
+                        cardsResumen.cantidad_familias_asistidas -
+                          cardsResumen.cantidad_indigena -
+                          cardsResumen.cantidad_no_indigena
+                      ),
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
           </div>
           <MapaParaguay
             fecha_inicio={dateRange.startDate}
             fecha_fin={dateRange.endDate}
           />
+        </div>
+      )}
 
+      {vista === "graficos" && (
+        <div className="grid gap-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-primary">
                 Distribución por Tipo de Evento
               </CardTitle>
               <CardDescription>
-                Cantidad de eventos registrados por tipo
+                Familias asistidas por tipo de evento
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                style={{
-                  paddingLeft: 5,
-                  paddingRight: 5,
-                  width: "100%",
-                }}
-              >
-                <GraficoPieEventos
-                  fecha_inicio={dateRange.startDate}
-                  fecha_fin={dateRange.endDate}
-                />
-              </motion.div>
+              <GraficoPieEventos
+                fecha_inicio={dateRange.startDate}
+                fecha_fin={dateRange.endDate}
+              />
             </CardContent>
           </Card>
-
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-primary">
                   Distribución de asistencias por año
                 </CardTitle>
                 <CardDescription>
-                  Grafico que muestra la cantidad de unidades distribuidas por
-                  producto y por año
+                  Unidades distribuidas por producto y por año
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <GraficoAnualAyudas
                   fecha_inicio={dateRange.startDate}
                   fecha_fin={dateRange.endDate}
-                  height={400}
                 />
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="text-info">
                   Distribución de asistencias por departamento
                 </CardTitle>
                 <CardDescription>
-                  Grafico que muestra la cantidad de unidades distribuidas por
-                  producto y por departamento
+                  Unidades distribuidas por producto y por departamento
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -310,12 +334,9 @@ export function ResumenGeneral() {
               </CardContent>
             </Card>
           </div>
-
           <Card>
             <CardHeader>
-              <CardTitle className="text-success">
-                Tendencias Temporales
-              </CardTitle>
+              <CardTitle className="text-success">Tendencias temporales</CardTitle>
               <CardDescription>
                 Evolución de la asistencia humanitaria a lo largo del tiempo
               </CardDescription>
@@ -327,36 +348,33 @@ export function ResumenGeneral() {
               />
             </CardContent>
           </Card>
+        </div>
+      )}
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <div className="overflow-x-auto w-full">
-              <DataTable
-                title="Registros Recientes"
-                subtitle="Lista de los registros de asistencia más recientes"
-                data={
-                  registrosRecientes || {
-                    count: 0,
-                    next: null,
-                    previous: null,
-                    results: [],
-                  }
-                }
-                columns={columnasRegistros}
-                onViewDetails={VisualizarDetallesGenericos}
-                itemsPerPage={10}
-                onPageChange={setPageUrl}
-                filters={filters}
-                setFilters={setFilters}
-                handleImprimir={handleImprimirPDF}
-              />
-            </div>
-          </motion.div>
-        </motion.div>
-      </motion.div>
-    </div>
+      {vista === "registros" && (
+        <div className="overflow-x-auto w-full">
+          <DataTable
+            title="Registros Recientes"
+            subtitle="Lista de los registros de asistencia más recientes"
+            data={
+              registrosRecientes || {
+                count: 0,
+                next: null,
+                previous: null,
+                results: [],
+              }
+            }
+            columns={columnasRegistros}
+            onViewDetails={VisualizarDetallesGenericos}
+            itemsPerPage={10}
+            onPageChange={setPageUrl}
+            filters={filters}
+            setFilters={setFilters}
+            handleImprimir={handleImprimirPDF}
+            maxHeight="calc(100dvh - 14rem)"
+          />
+        </div>
+      )}
+    </SectionShell>
   );
 }

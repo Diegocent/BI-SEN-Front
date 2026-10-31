@@ -1,5 +1,6 @@
 import ReactECharts from "echarts-for-react";
 import { useAsistenciasPorEventoQuery } from "@/api";
+import { CHART_H } from "@/lib/chartSize";
 
 export default function GraficoAyudasPorEvento({
   fecha_inicio = "",
@@ -21,13 +22,15 @@ export default function GraficoAyudasPorEvento({
   // Usar data.results para paginación DRF, o data directo si no existe results
   const results = Array.isArray(data) ? data : data?.results || [];
 
-  // Ordenar por unidades_distribuidas descendente
+  // Ordenar por familias asistidas
   const sorted = [...results].sort(
-    (a, b) => (b.unidades_distribuidas || 0) - (a.unidades_distribuidas || 0)
+    (a, b) =>
+      (b.cantidad_familias_asistidas || 0) -
+      (a.cantidad_familias_asistidas || 0)
   );
 
   const eventos = sorted.map((item) => item.evento);
-  const ayudas = sorted.map((item) => item.unidades_distribuidas || 0);
+  const ayudas = sorted.map((item) => item.cantidad_familias_asistidas || 0);
 
   // Calcular el total de ayudas para porcentaje
   const sumaTotal = ayudas.reduce((acc: number, curr: number) => acc + curr, 0);
@@ -42,7 +45,7 @@ export default function GraficoAyudasPorEvento({
         const value = p.value;
         const percent =
           sumaTotal > 0 ? ((value / sumaTotal) * 100).toFixed(1) : "0.0";
-        return `${p.axisValueLabel}<br/>Unidades: <b>${value}</b><br/>Porcentaje: <b>${percent}%</b>`;
+        return `${p.axisValueLabel}<br/>Familias: <b>${value}</b><br/>Porcentaje: <b>${percent}%</b>`;
       },
     },
     grid: { left: 30, right: 10, bottom: 10, top: 35, containLabel: true },
@@ -57,7 +60,7 @@ export default function GraficoAyudasPorEvento({
     },
     yAxis: {
       type: "value",
-      name: "Unidades Distribuidas",
+      name: "Familias asistidas",
       nameLocation: "middle",
       nameGap: 70,
       axisLabel: { fontSize: 12 },
@@ -100,7 +103,7 @@ export default function GraficoAyudasPorEvento({
     <div style={{ background: "#fff", borderRadius: 8, padding: 2 }}>
       <ReactECharts
         option={option}
-        style={{ height: 400, width: "100%" }}
+        style={{ height: CHART_H, width: "100%" }}
         opts={{ renderer: "canvas", devicePixelRatio: 2 }}
       />
     </div>

@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -9,8 +8,7 @@ import {
 import { DataTable } from "../../data-table";
 import { useGetPorEventoQuery, useEventosPorDepartamentoQuery } from "@/api";
 import { useState, useEffect } from "react";
-import { generateTablePDF } from "@/lib/pdfUtils";
-import { ObtenerTotalData } from "@/hooks/obtenerTotalData";
+import { imprimirTablaPDF } from "@/lib/pdfUtils";
 import GraficoPieEventos from "../../grafico-pie-eventos";
 import GraficoAyudasPorEvento from "../../grafico-ayudas-por-evento";
 import GraficoComposicionAyudasPorEvento from "../../grafico-composicion-ayudas-por-evento";
@@ -23,6 +21,7 @@ import {
   columnasEventosDepartamentoPDF,
 } from "./constants/constants";
 import VisualizarDetallesGenericos from "@/components/VisualizarDetallesGenericos";
+import { SectionShell } from "@/components/layout/section-shell";
 
 export function AnalisisEventos() {
   // Filtro global de fechas
@@ -70,16 +69,12 @@ export function AnalisisEventos() {
     setPdfParamEvento({ ...filtersEventoWithoutPage, ...dateParams });
   }, [filtersEvento, dateRange]);
 
-  const handleImprimirPDFEvento = async () => {
-    const registrosTotales = await ObtenerTotalData(
-      "",
-      "por-evento",
-      pdfParamEvento,
-      dataEventos?.count || 10
-    );
-    generateTablePDF({
+  const handleImprimirPDFEvento = () => {
+    imprimirTablaPDF({
+      controller: "por-evento",
+      params: pdfParamEvento,
+      perPage: dataEventos?.count || 10,
       columns: columnasTipoEventosPDF,
-      data: registrosTotales?.results || [],
       title: "Eventos por Tipo",
     });
   };
@@ -90,16 +85,12 @@ export function AnalisisEventos() {
     setPdfParamDepto({ ...filtersDeptoWithoutPage, ...dateParams });
   }, [filtersDepto, dateRange]);
 
-  const handleImprimirPDFDepto = async () => {
-    const registrosTotales = await ObtenerTotalData(
-      "",
-      "eventos-por-departamento",
-      pdfParamDepto,
-      dataPorDepartamento?.count || 10
-    );
-    generateTablePDF({
+  const handleImprimirPDFDepto = () => {
+    imprimirTablaPDF({
+      controller: "eventos-por-departamento",
+      params: pdfParamDepto,
+      perPage: dataPorDepartamento?.count || 10,
       columns: columnasEventosDepartamentoPDF,
-      data: registrosTotales?.results || [],
       title: "Eventos por Departamento",
     });
   };
@@ -121,204 +112,162 @@ export function AnalisisEventos() {
   const [sequias, setSequias] = useState(0);
   const [incendios, setIncendios] = useState(0);
   const [tormentas, setTormentas] = useState(0);
+  const [vista, setVista] = useState("indicadores");
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
+    <SectionShell
+      title="Análisis por Eventos"
+      description="Análisis categorizado por tipos de eventos de emergencia"
+      dateRange={dateRange}
+      onDateChange={setDateRange}
+      tabs={[
+        { id: "indicadores", label: "Indicadores" },
+        { id: "graficos", label: "Gráficos" },
+        { id: "tablas", label: "Tablas" },
+      ]}
+      activeTab={vista}
+      onTabChange={setVista}
     >
-      {/* Filtro global de fechas */}
-      <div className="flex gap-4 items-center mb-4">
-        <label className="font-semibold">Rango de fechas:</label>
-        <input
-          type="date"
-          value={dateRange.startDate}
-          onChange={(e) =>
-            setDateRange((r) => ({ ...r, startDate: e.target.value }))
-          }
-          className="border rounded px-2 py-1"
-        />
-        <span className="mx-2">a</span>
-        <input
-          type="date"
-          value={dateRange.endDate}
-          onChange={(e) =>
-            setDateRange((r) => ({ ...r, endDate: e.target.value }))
-          }
-          className="border rounded px-2 py-1"
-        />
-      </div>
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.1 }}
-        className="mb-6"
-      >
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Análisis por Eventos
-        </h1>
-        <p className="text-muted-foreground">
-          Análisis categorizado por tipos de eventos de emergencia
-        </p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="grid gap-6"
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-primary">
-              Distribución por Tipo de Evento
-            </CardTitle>
-            <CardDescription>
-              Cantidad de eventos registrados por tipo
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <GraficoPieEventos
-              fecha_inicio={dateRange.startDate}
-              fecha_fin={dateRange.endDate}
-              setInundaciones={setInundaciones}
-              setSequias={setSequias}
-              setIncendios={setIncendios}
-              setTormentas={setTormentas}
-            />
-          </CardContent>
-        </Card>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-info">Inundaciones</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-info">{inundaciones}</p>
-              <p className="text-sm text-muted-foreground">
-                Eventos registrados
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-warning">Sequías</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-warning">{sequias}</p>
-              <p className="text-sm text-muted-foreground">
-                Eventos registrados
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-danger">Incendios</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-danger">{incendios}</p>
-              <p className="text-sm text-muted-foreground">
-                Eventos registrados
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-success">Tormentas Severas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-success">{tormentas}</p>
-              <p className="text-sm text-muted-foreground">
-                Eventos registrados
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
+      {vista === "indicadores" && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-info text-sm">Inundaciones</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-info">{inundaciones}</p>
+                <p className="text-xs text-muted-foreground">Familias asistidas</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-warning text-sm">Sequías</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-warning">{sequias}</p>
+                <p className="text-xs text-muted-foreground">Familias asistidas</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-danger text-sm">Incendios</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-danger">{incendios}</p>
+                <p className="text-xs text-muted-foreground">Familias asistidas</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-success text-sm">
+                  Tormentas severas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-success">{tormentas}</p>
+                <p className="text-xs text-muted-foreground">Familias asistidas</p>
+              </CardContent>
+            </Card>
+          </div>
           <Card>
             <CardHeader>
               <CardTitle className="text-primary">
-                Asistencias distribuidas segun Evento
+                Distribución por tipo de evento
               </CardTitle>
               <CardDescription>
-                Este grafico contiene la cantidad de asistencias (kits
-                sentencia, kits evento, chapas) distribuidas por tipo de evento
+                Familias asistidas por tipo de evento
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <GraficoAyudasPorEvento
+              <GraficoPieEventos
                 fecha_inicio={dateRange.startDate}
                 fecha_fin={dateRange.endDate}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-info">
-                Composición de Asistencias segun Evento
-              </CardTitle>
-              <CardDescription>
-                Grafico que muestra los detalles de los productos que se
-                distribuyeron para cada evento
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GraficoComposicionAyudasPorEvento
-                fecha_inicio={dateRange.startDate}
-                fecha_fin={dateRange.endDate}
+                setInundaciones={setInundaciones}
+                setSequias={setSequias}
+                setIncendios={setIncendios}
+                setTormentas={setTormentas}
               />
             </CardContent>
           </Card>
         </div>
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-primary">
-                Comparacion de eventos por año
-              </CardTitle>
-              <CardDescription>
-                Este grafico contiene la comparativa de eventos registrados por
-                año
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GraficoComparacionEventosAnio
-                fecha_inicio={dateRange.startDate}
-                fecha_fin={dateRange.endDate}
-              />
-            </CardContent>
-          </Card>
+      )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-info">
-                Tendencia mensual de eventos
-              </CardTitle>
-              <CardDescription>
-                Grafico que muestra la tendencia mensual del evento seleccionado
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GraficoTendenciaMensualEventos
-                fecha_inicio={dateRange.startDate}
-                fecha_fin={dateRange.endDate}
-              />
-            </CardContent>
-          </Card>
+      {vista === "graficos" && (
+        <div className="space-y-4">
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-primary">
+                  Asistencias según evento
+                </CardTitle>
+                <CardDescription>
+                  Familias asistidas por tipo de evento
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GraficoAyudasPorEvento
+                  fecha_inicio={dateRange.startDate}
+                  fecha_fin={dateRange.endDate}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-info">
+                  Composición de asistencias según evento
+                </CardTitle>
+                <CardDescription>
+                  Productos distribuidos para cada evento
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GraficoComposicionAyudasPorEvento
+                  fecha_inicio={dateRange.startDate}
+                  fecha_fin={dateRange.endDate}
+                />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-primary">
+                  Comparación de eventos por año
+                </CardTitle>
+                <CardDescription>
+                  Familias asistidas por tipo de evento y año
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GraficoComparacionEventosAnio
+                  fecha_inicio={dateRange.startDate}
+                  fecha_fin={dateRange.endDate}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-info">
+                  Tendencia mensual de eventos
+                </CardTitle>
+                <CardDescription>
+                  Tendencia mensual del evento seleccionado
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GraficoTendenciaMensualEventos
+                  fecha_inicio={dateRange.startDate}
+                  fecha_fin={dateRange.endDate}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </div>
+      )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+      {vista === "tablas" && (
+        <div className="space-y-4">
           <div className="overflow-x-auto w-full">
             <DataTable
               data={
@@ -339,15 +288,9 @@ export function AnalisisEventos() {
               filters={filtersEvento}
               setFilters={setFiltersEvento}
               handleImprimir={handleImprimirPDFEvento}
+              maxHeight="calc(100dvh - 16rem)"
             />
           </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
           <div className="overflow-x-auto w-full">
             <DataTable
               data={
@@ -368,10 +311,13 @@ export function AnalisisEventos() {
               filters={filtersDepto}
               setFilters={setFiltersDepto}
               handleImprimir={handleImprimirPDFDepto}
+              maxHeight="calc(100dvh - 16rem)"
             />
           </div>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+        </div>
+      )}
+    </SectionShell>
   );
 }
+
+

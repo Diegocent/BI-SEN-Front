@@ -1,8 +1,9 @@
 import { Column } from "@/components/data-table";
+import { columnasBeneficiarios } from "@/components/columnas-beneficiarios";
 
-// Columnas para tabla (hasta chapas zinc)
 export const columnasAnual: Column[] = [
   { key: "anio", label: "Año", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits por sentencia de la corte",
@@ -32,6 +33,7 @@ export const columnasAnual: Column[] = [
 export const columnasMensual: Column[] = [
   { key: "anio", label: "Año", dataType: "text", filterType: "text" },
   { key: "nombre_mes", label: "Mes", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits por sentencia de la corte",
@@ -58,9 +60,9 @@ export const columnasMensual: Column[] = [
   },
 ];
 
-// Columnas para PDF (todos los campos)
 export const columnasAnualPDF: Column[] = [
   { key: "anio", label: "Año", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits por sentencia de la corte",
@@ -120,6 +122,7 @@ export const columnasAnualPDF: Column[] = [
 export const columnasMensualPDF: Column[] = [
   { key: "anio", label: "Año", dataType: "text", filterType: "text" },
   { key: "nombre_mes", label: "Mes", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits por sentencia de la corte",

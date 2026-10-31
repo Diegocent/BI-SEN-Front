@@ -1,5 +1,6 @@
 import ReactECharts from "echarts-for-react";
 import { useAsistenciasPorAnioDepartamentoQuery } from "../api";
+import { CHART_H } from "@/lib/chartSize";
 
 export default function GraficoEvolucionAyudasTopDepartamentos({
   fecha_inicio = "",
@@ -10,7 +11,7 @@ export default function GraficoEvolucionAyudasTopDepartamentos({
 }) {
   const TOP_N = 5;
   const { data, isLoading, isError } = useAsistenciasPorAnioDepartamentoQuery({
-    per_page: 100,
+    per_page: 500,
     ...(fecha_inicio && fecha_fin
       ? { fecha_desde: fecha_inicio, fecha_hasta: fecha_fin }
       : {}),
@@ -22,25 +23,11 @@ export default function GraficoEvolucionAyudasTopDepartamentos({
   // Usar data.results para paginación DRF, o data directo si no existe results
   const results = Array.isArray(data) ? data : data?.results || [];
 
-  // Agrupar por departamento y año, sumar total ayudas
-  const ayudaFields = [
-    "kit_sentencia",
-    "kit_evento",
-    "chapa_fibrocemento_cantidad",
-    "chapa_zinc_cantidad",
-    "colchones_cantidad",
-    "frazadas_cantidad",
-    "terciadas_cantidad",
-    "puntales_cantidad",
-    "carpas_plasticas_cantidad",
-  ];
-
-  // Agrupar por departamento
   const agrupado: Record<string, { anio: number; total: number }[]> = {};
   results.forEach((item: any) => {
     const depto = item.departamento;
     const anio = item.anio;
-    const total = ayudaFields.reduce((acc, f) => acc + (item[f] || 0), 0);
+    const total = item.cantidad_familias_asistidas || 0;
     if (!agrupado[depto]) agrupado[depto] = [];
     agrupado[depto].push({ anio, total });
   });
@@ -115,7 +102,7 @@ export default function GraficoEvolucionAyudasTopDepartamentos({
     },
     yAxis: {
       type: "value",
-      name: "Total asistencias",
+      name: "Familias asistidas",
       nameLocation: "middle",
       nameGap: 65,
       axisLabel: { fontSize: 12 },
@@ -143,7 +130,7 @@ export default function GraficoEvolucionAyudasTopDepartamentos({
 
   return (
     <div style={{ background: "#fff", borderRadius: 8, padding: 0 }}>
-      <ReactECharts option={option} style={{ height: 400 }} />
+      <ReactECharts option={option} style={{ height: CHART_H }} />
     </div>
   );
 }

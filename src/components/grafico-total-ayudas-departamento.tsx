@@ -1,18 +1,7 @@
 import React, { useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { useGetPorDepartamentoQuery } from "../api/geografica/geograficaApi";
-
-const tiposAyuda = [
-  "kit_sentencia",
-  "kit_evento",
-  "chapa_fibrocemento_cantidad",
-  "chapa_zinc_cantidad",
-  "colchones_cantidad",
-  "frazadas_cantidad",
-  "terciadas_cantidad",
-  "puntales_cantidad",
-  "carpas_plasticas_cantidad",
-];
+import { CHART_H } from "@/lib/chartSize";
 
 export default function GraficoTotalAyudasPorDepartamento({
   fecha_inicio = "",
@@ -30,27 +19,28 @@ export default function GraficoTotalAyudasPorDepartamento({
       : {}),
   });
 
-  // Siempre se ejecuta este hook
   const results = Array.isArray(data) ? data : data?.results || [];
 
   useEffect(() => {
     if (setTopDepartamento && results.length > 0) {
       const top = results.reduce((max: any, d: any) =>
-        d.unidades_distribuidas > max.unidades_distribuidas ? d : max
+        (d.cantidad_familias_asistidas || 0) >
+        (max.cantidad_familias_asistidas || 0)
+          ? d
+          : max
       );
       setTopDepartamento(top.departamento);
     }
   }, [results, setTopDepartamento]);
 
-  // Ahora sí condicionar el render, después de los hooks
   if (isLoading) return <div>Cargando gráfico...</div>;
   if (isError || !data) return <div>Error al cargar los datos.</div>;
 
   const departamentos = results.map((d: any) => d.departamento);
-  const totalAyudas = results.map((d: any) =>
-    tiposAyuda.reduce((acc, tipo) => acc + (d[tipo] || 0), 0)
+  const familias = results.map(
+    (d: any) => d.cantidad_familias_asistidas || 0
   );
-  const sumaTotal = totalAyudas.reduce((a: number, b: number) => a + b, 0);
+  const sumaTotal = familias.reduce((a: number, b: number) => a + b, 0);
 
   const option = {
     tooltip: {
@@ -61,7 +51,7 @@ export default function GraficoTotalAyudasPorDepartamento({
         const porcentaje = sumaTotal
           ? ((p.data / sumaTotal) * 100).toFixed(1)
           : 0;
-        return `${p.axisValue}<br/>Total de productos distribuidos: <b>${p.data}</b><br/>Porcentaje: <b>${porcentaje}%</b>`;
+        return `${p.axisValue}<br/>Familias asistidas: <b>${p.data}</b><br/>Porcentaje: <b>${porcentaje}%</b>`;
       },
     },
     xAxis: {
@@ -75,7 +65,7 @@ export default function GraficoTotalAyudasPorDepartamento({
     },
     yAxis: {
       type: "value",
-      name: "Total de unidades distribuidas",
+      name: "Familias asistidas",
       nameLocation: "middle",
       nameGap: 75,
       axisLabel: { fontSize: 12 },
@@ -83,7 +73,7 @@ export default function GraficoTotalAyudasPorDepartamento({
     },
     series: [
       {
-        data: totalAyudas,
+        data: familias,
         type: "bar",
         color: "#6c71d5",
         barWidth: 24,
@@ -115,7 +105,7 @@ export default function GraficoTotalAyudasPorDepartamento({
 
   return (
     <div style={{ background: "#fff", borderRadius: 8, padding: 0 }}>
-      <ReactECharts option={option} style={{ height: 400 }} />
+      <ReactECharts option={option} style={{ height: CHART_H }} />
     </div>
   );
 }

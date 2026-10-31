@@ -1,14 +1,15 @@
 import ReactECharts from "echarts-for-react";
 import { useGetAnualQuery } from "@/api";
+import { CHART_H } from "@/lib/chartSize";
 
 export default function GraficoAnualAyudas({
   fecha_inicio = "",
   fecha_fin = "",
-  height = 400,
+  height = CHART_H,
 }: {
   fecha_inicio?: string;
   fecha_fin?: string;
-  height?: number;
+  height?: number | string;
 }) {
   const { data, isLoading, error } = useGetAnualQuery({
     per_page: 100,

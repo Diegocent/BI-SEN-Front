@@ -1,4 +1,5 @@
 import { Column } from "@/components/data-table";
+import { columnasBeneficiarios } from "@/components/columnas-beneficiarios";
 
 const columnasRegistros: Column[] = [
   { key: "fecha", label: "Fecha", dataType: "date", filterType: "date" },
@@ -16,6 +17,7 @@ const columnasRegistros: Column[] = [
     filterType: "text",
   },
   { key: "evento", label: "Evento", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kit de sentencia de la Corte",
@@ -58,6 +60,7 @@ const columnasReportes: Column[] = [
     filterType: "text",
   },
   { key: "evento", label: "Evento", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kit de sentencia de la Corte",

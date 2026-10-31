@@ -1,5 +1,7 @@
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { descargarPdf } from "@/lib/pdfUtils";
+import { mostrarNotificacion } from "@/components/ui/notificacion";
 // Función para formatear números grandes
 export const formatNumber = (value: any): string => {
   if (value === null || value === undefined) return "0";
@@ -125,6 +127,30 @@ export function useGenerarReporteGenerico(
 
   if (eventoData.length > 0) {
     currentY = addSection("EVENTO", eventoData, currentY);
+  }
+
+  const beneficiariosData: Array<[string, string]> = [];
+  if (registro.cantidad_familias_asistidas != null)
+    beneficiariosData.push([
+      "Familias",
+      formatNumber(registro.cantidad_familias_asistidas),
+    ]);
+  if (registro.cantidad_mujeres != null)
+    beneficiariosData.push(["Mujeres", formatNumber(registro.cantidad_mujeres)]);
+  if (registro.cantidad_hombres != null)
+    beneficiariosData.push(["Hombres", formatNumber(registro.cantidad_hombres)]);
+  if (registro.cantidad_indigena != null)
+    beneficiariosData.push([
+      "Indígena",
+      formatNumber(registro.cantidad_indigena),
+    ]);
+  if (registro.cantidad_no_indigena != null)
+    beneficiariosData.push([
+      "No indígena",
+      formatNumber(registro.cantidad_no_indigena),
+    ]);
+  if (beneficiariosData.length > 0) {
+    currentY = addSection("BENEFICIARIOS", beneficiariosData, currentY);
   }
 
   // Estadísticas
@@ -266,8 +292,25 @@ export function useGenerarReporteGenerico(
     pageHeight - 10
   );
 
-  // Generar y abrir PDF
-  const pdfBlob = doc.output("blob");
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, "_blank");
+  try {
+    mostrarNotificacion({
+      paso: "Paso 1 de 1",
+      mensaje: `Generando PDF de «${title}»…`,
+      tipo: "info",
+      persistente: true,
+    });
+    const filename = descargarPdf(doc, title);
+    mostrarNotificacion({
+      paso: "Descarga completa",
+      mensaje: `El PDF se descargó correctamente: ${filename}`,
+      tipo: "success",
+    });
+  } catch (error) {
+    console.error("No se pudo descargar el PDF", error);
+    mostrarNotificacion({
+      paso: "Error",
+      mensaje: "No se pudo descargar el PDF. Intente de nuevo.",
+      tipo: "error",
+    });
+  }
 }

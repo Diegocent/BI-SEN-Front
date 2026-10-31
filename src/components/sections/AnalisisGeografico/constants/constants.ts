@@ -1,6 +1,6 @@
 import { Column } from "@/components/data-table";
+import { columnasBeneficiarios } from "@/components/columnas-beneficiarios";
 
-// Para tabla (hasta chapas zinc)
 export const columnasDepartamentos: Column[] = [
   {
     key: "departamento",
@@ -8,6 +8,7 @@ export const columnasDepartamentos: Column[] = [
     dataType: "text",
     filterType: "text",
   },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits Sentencia",
@@ -42,6 +43,7 @@ export const columnasDistritos: Column[] = [
     filterType: "text",
   },
   { key: "distrito", label: "Distrito", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits Sentencia",
@@ -68,7 +70,6 @@ export const columnasDistritos: Column[] = [
   },
 ];
 
-// Para PDF (todos los campos)
 export const columnasDepartamentosPDF: Column[] = [
   {
     key: "departamento",
@@ -76,6 +77,7 @@ export const columnasDepartamentosPDF: Column[] = [
     dataType: "text",
     filterType: "text",
   },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits Sentencia",
@@ -140,6 +142,7 @@ export const columnasDistritosPDF: Column[] = [
     filterType: "text",
   },
   { key: "distrito", label: "Distrito", dataType: "text", filterType: "text" },
+  ...columnasBeneficiarios,
   {
     key: "kit_sentencia",
     label: "Kits Sentencia",
